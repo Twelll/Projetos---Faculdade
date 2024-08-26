@@ -1,0 +1,164 @@
+/* 
+Projeto semaforo - UTFPR 
+Data: 02/06/24
+Alunos:
+Rahif Guedes de Andrade
+Thiago André Mattos Málaga
+Thiago Wesley P. de Melo
+*/
+
+//leds semaforo via
+const int VERMELHOVIA = 4;
+const int AMARELOVIA = 7;
+const int VERDEVIA = 8;
+
+//leds semaforo pedestre
+const int VERMELHOPEDESTRE = 12;
+const int VERDEPEDESTRE = 13;
+
+//estados do botao
+const int BOTAO = 2;
+bool estado_botao = 0;
+bool antigo_estado_botao = 0;
+bool botao_latencia = false;
+
+//variaveis de tempo
+unsigned long int tempo_passado;
+unsigned long int tempo_atual;
+unsigned long int marca_tempo;
+int tempo_amarelo_via = 3000;
+int tempo_vermelho_pedestre = 2000;
+int tempo_verde_pedestre = 5000;
+int tempo_piscar_verde = 6000; 
+int latencia = 5000;
+unsigned long int inicio_ciclo = 0;
+
+//contador de piscadas
+int contador_piscar = 0;
+
+void setup() {
+  //inicializa semáforo via
+  pinMode(VERMELHOVIA, OUTPUT);
+  pinMode(AMARELOVIA, OUTPUT);
+  pinMode(VERDEVIA, OUTPUT);
+
+  //estado inicial via
+  digitalWrite(VERMELHOVIA, LOW);
+  digitalWrite(AMARELOVIA, LOW);
+  digitalWrite(VERDEVIA, HIGH);
+
+  //inicializa semáforo pedestre
+  pinMode(VERMELHOPEDESTRE, OUTPUT);
+  pinMode(VERDEPEDESTRE, OUTPUT);
+
+  //estado inicial pedestre
+  digitalWrite(VERMELHOPEDESTRE, HIGH);
+  digitalWrite(VERDEPEDESTRE, LOW);
+
+  //inicializa botão
+  pinMode(BOTAO, INPUT);
+}//setup
+
+void loop() {
+  //le o botao
+  estado_botao = digitalRead(BOTAO);
+
+  /*condicao caso o botao esteja ativo
+    ou foi ativo mas não completou o ciclo
+    ou foi apertado durante o periodo de latencia
+  */
+  if (estado_botao == HIGH || antigo_estado_botao == true || botao_latencia == true) {
+
+    
+    tempo_atual = millis(); 
+    tempo_passado = tempo_atual - inicio_ciclo; // reinicia o valor do inicio do ciclo quando ele recomeçar
+
+    // Semáforo da via ficará amarelo por 3 segundos
+    if (tempo_passado <= tempo_amarelo_via) {
+      antigo_estado_botao = true;
+      digitalWrite(VERMELHOVIA, LOW);
+      digitalWrite(AMARELOVIA, HIGH);
+      digitalWrite(VERDEVIA, LOW);
+      digitalWrite(VERMELHOPEDESTRE, HIGH);
+      digitalWrite(VERDEPEDESTRE, LOW);
+
+    // Semáforo da via ficará vermelho enquanto o pedestre não pode atravessar
+    } else if (tempo_passado <= tempo_amarelo_via + tempo_vermelho_pedestre) {
+      digitalWrite(VERMELHOVIA, HIGH);
+      digitalWrite(AMARELOVIA, LOW);
+      digitalWrite(VERDEVIA, LOW);
+      digitalWrite(VERMELHOPEDESTRE, HIGH);
+      digitalWrite(VERDEPEDESTRE, LOW);
+
+    // Semáforo da via ficará vermelho e o pedestre poderá atravessar
+    } else if (tempo_passado <= tempo_amarelo_via + tempo_vermelho_pedestre + tempo_verde_pedestre) {
+      digitalWrite(VERMELHOVIA, HIGH);
+      digitalWrite(AMARELOVIA, LOW);
+      digitalWrite(VERDEVIA, LOW);
+      digitalWrite(VERMELHOPEDESTRE, LOW);
+      digitalWrite(VERDEPEDESTRE, HIGH);
+
+    // Semáforo piscando para pedestre
+    } else if (tempo_passado <= tempo_amarelo_via + tempo_vermelho_pedestre + tempo_verde_pedestre + tempo_piscar_verde) {
+      if (tempo_atual - marca_tempo >= 1000 && contador_piscar < 6) {
+        digitalWrite(VERDEPEDESTRE, !digitalRead(VERDEPEDESTRE)); //inverte estado anterior do led
+        marca_tempo = tempo_atual; //mantem a diferenca como 1 segundo
+        contador_piscar++; // garante 3 piscadas on e 3 off
+      }
+
+    // Período de latência de 5 segundos
+    } else if (tempo_passado <= tempo_amarelo_via + tempo_vermelho_pedestre + tempo_verde_pedestre + tempo_piscar_verde + latencia) {
+
+      contador_piscar = 0; //reinicia as piscadas para o proximo ciclo
+
+      //estado normal dos leds
+      digitalWrite(VERMELHOVIA, LOW);
+      digitalWrite(AMARELOVIA, LOW);
+      digitalWrite(VERDEVIA, HIGH);
+      digitalWrite(VERMELHOPEDESTRE, HIGH);
+      digitalWrite(VERDEPEDESTRE, LOW);
+
+      //garante o salvamento unico do estado do botao caso seja apertado durante a latencia
+      if(estado_botao == LOW && botao_latencia == false){
+        botao_latencia = false;
+      }else{
+        botao_latencia = true;
+      }
+
+
+    } else {
+      //caso o botao tenha sido apertado durante a latencia
+      //garante que o ciclo reinicie sem pedir novamente
+      if(botao_latencia == true){
+        antigo_estado_botao = true;
+        botao_latencia = false;
+      }
+      else{
+        // o ciclo volta ao estado normal dos leds
+        antigo_estado_botao = false;
+      }
+
+      // Recomeçar ciclo
+      inicio_ciclo = millis();
+
+      //estado normal dos leds
+      digitalWrite(VERMELHOVIA, LOW);
+      digitalWrite(AMARELOVIA, LOW);
+      digitalWrite(VERDEVIA, HIGH);
+      digitalWrite(VERMELHOPEDESTRE, HIGH);
+      digitalWrite(VERDEPEDESTRE, LOW);
+    }
+  } else {
+    // Estado normal do semáforo
+    
+
+    inicio_ciclo = millis();
+    digitalWrite(VERMELHOVIA, LOW);
+    digitalWrite(AMARELOVIA, LOW);
+    digitalWrite(VERDEVIA, HIGH);
+    digitalWrite(VERMELHOPEDESTRE, HIGH);
+    digitalWrite(VERDEPEDESTRE, LOW);
+
+  }
+      
+}
