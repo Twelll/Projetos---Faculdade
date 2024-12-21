@@ -1,9 +1,9 @@
-# Projeto Semáforo
+# 🚦Projeto Semáforo
 
-## Objetivo Geral
+## 📃Objetivo Geral
 O objetivo deste projeto foi criar um semáforo conforme as restrições e informações fornecidas pelos professores.
 
-## Desafio
+## 🗡Desafio
 
 ### 1. Ciclo de Passagem de Carros
 - **Condições**:
@@ -28,3 +28,6 @@ O objetivo deste projeto foi criar um semáforo conforme as restrições e infor
 
 ### 3. Restrição Importante
 - O semáforo não pode reiniciar o modo "passagem de pedestre" se o botão for pressionado novamente durante o ciclo.
+
+## 📄 Licença
+Você pode usar, modificar e distribuir este projeto. [MIT License](./LICENSE)
